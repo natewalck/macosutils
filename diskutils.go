@@ -39,13 +39,10 @@ func (d *DMG) Mount(dmgPath string) {
 	fmt.Printf("DMG mounted at %v\n", d.MountPoint)
 }
 
-func (d *DMG) Unmount(dmgPath string) bool {
+func (d *DMG) Unmount(dmgPath string) error {
 	args := []string{"detach", dmgPath}
 	_, err := exec.Command("/usr/bin/hdiutil", args...).Output()
-	if err != nil {
-		log.Fatal(err)
-	}
-	return true
+	return err
 }
 
 func MountPoint(mountinfo SystemEntities) string {
