@@ -3,10 +3,15 @@
 package macosutils
 
 import (
+	"fmt"
 	"github.com/groob/plist"
 	"log"
 	"os/exec"
 )
+
+type DMG struct {
+	MountPoint string
+}
 
 type SystemEntities struct {
 	Disks []DiskEntries `plist:"system-entities"`
@@ -16,7 +21,8 @@ type DiskEntries struct {
 	Disk *string `plist:"mount-point"`
 }
 
-func MountDmg(dmgPath string) string {
+func (d *DMG) Mount(dmgPath string) {
+	fmt.Printf("Mounting dmg located at %v\n", dmgPath)
 	args := []string{"attach", dmgPath, "-mountRandom", "/tmp", "-nobrowse", "-plist"}
 	out, err := exec.Command("/usr/bin/hdiutil", args...).Output()
 	if err != nil {
@@ -29,19 +35,17 @@ func MountDmg(dmgPath string) string {
 		log.Fatal(err)
 	}
 
-	mount := MountPoint(mountinfo)
-	return mount
+	d.MountPoint = MountPoint(mountinfo)
+	fmt.Printf("DMG mounted at %v\n", d.MountPoint)
 }
 
-func UnmountDmg(dmgPath string) bool {
+func (d *DMG) Unmount(dmgPath string) bool {
 	args := []string{"detach", dmgPath}
 	_, err := exec.Command("/usr/bin/hdiutil", args...).Output()
 	if err != nil {
 		log.Fatal(err)
-		return false
-	} else {
-		return true
 	}
+	return true
 }
 
 func MountPoint(mountinfo SystemEntities) string {
