@@ -12,7 +12,7 @@ func InstallApp(appPath string, appName string) error {
 	args := []string{"--noqtn", path.Join(appPath, appName), path.Join("/Applications/", appName)}
 	_, err := exec.Command("/usr/bin/ditto", args...).Output()
 	if err != nil {
-		log.Fatal("Failed to install %v", appName)
+		log.Printf("Failed to install:", appName)
 	}
 	return err
 }
@@ -21,7 +21,7 @@ func InstallPkg(pkgPath string, pkgName string) error {
 	args := []string{"-pkg", path.Join(pkgPath, pkgName), "-tgt", "/"}
 	_, err := exec.Command("/usr/sbin/installer", args...).Output()
 	if err != nil {
-		log.Fatal("Failed to install %v", pkgName)
+		log.Printf("Failed to install:", pkgName)
 	}
 	return err
 }

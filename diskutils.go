@@ -30,7 +30,7 @@ func (d *DMG) Mount(dmgPath string) error {
 	args := []string{"attach", dmgPath, "-mountRandom", "/tmp", "-nobrowse", "-plist"}
 	out, err := exec.Command("/usr/bin/hdiutil", args...).Output()
 	if err != nil {
-		log.Fatal(err)
+		log.Printf("Failed to mount dmg with error: %v", err)
 	}
 
 	var mountinfo SystemEntities
