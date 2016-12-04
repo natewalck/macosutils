@@ -3,19 +3,25 @@
 package macosutils
 
 import (
-	"io/ioutil"
+	"log"
 	"os/exec"
 	"path"
 )
 
-func InstallApp(appPath string) error {
-	files, _ := ioutil.ReadDir(appPath)
-	for _, f := range files {
-		if path.Ext(f.Name()) == ".app" {
-			args := []string{"--noqtn", path.Join(appPath, f.Name()), path.Join("/Applications/", f.Name())}
-			_, err := exec.Command("/usr/bin/ditto", args...).Output()
-			return err
-		}
+func InstallApp(appPath string, appName string) error {
+	args := []string{"--noqtn", path.Join(appPath, appName), path.Join("/Applications/", appName)}
+	_, err := exec.Command("/usr/bin/ditto", args...).Output()
+	if err != nil {
+		log.Fatal("Failed to install %v", appName)
 	}
-	return nil
+	return err
+}
+
+func InstallPkg(pkgPath string, pkgName string) error {
+	args := []string{"-pkg", path.Join(pkgPath, pkgName), "-tgt", "/"}
+	_, err := exec.Command("/usr/sbin/installer", args...).Output()
+	if err != nil {
+		log.Fatal("Failed to install %v", pkgName)
+	}
+	return err
 }
