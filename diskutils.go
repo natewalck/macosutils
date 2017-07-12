@@ -65,6 +65,9 @@ func (d *DMG) Mount() error {
 
 	var mountinfo SystemEntities
 	err = plist.Unmarshal(out, &mountinfo)
+	if err != nil {
+		log.Printf("Failed to read mount info: %v", err)
+	}
 
 	d.MountPoint = MountPoint(mountinfo)
 	log.Printf("DMG mounted at %v\n", d.MountPoint)
@@ -75,6 +78,9 @@ func (d *DMG) Mount() error {
 func (d *DMG) Unmount(dmgPath string) error {
 	args := []string{"detach", dmgPath}
 	_, err := exec.Command("/usr/bin/hdiutil", args...).Output()
+	if err != nil {
+		log.Printf("Failed to unmount dmg: %v", err)
+	}
 	return err
 }
 
