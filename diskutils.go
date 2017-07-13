@@ -141,6 +141,17 @@ func (d *DMG) HasSLA() bool {
 	return d.ImageInfo.Properties.SoftwareLicenseAgreement
 }
 
+// IsWritable returns true if the DMG is in a writable format
+func (d *DMG) IsWritable() bool {
+	writableFormats := []string{"UDSB", "UDSP", "UDRW", "RdWr"}
+	for _, format := range writableFormats {
+		if d.ImageInfo.Format == format {
+			return true
+		}
+	}
+	return false
+}
+
 // MountPoint returns the filepath where the dmg is mounted
 func MountPoint(mountinfo SystemEntities) string {
 	for _, v := range mountinfo.Disks {
