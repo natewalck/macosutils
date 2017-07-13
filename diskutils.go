@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/groob/plist"
-	"github.com/y0ssar1an/q"
 )
 
 // DMG reprents a macOS DMG image
@@ -87,7 +86,6 @@ func NewDMG(path string, opts ...DMGOption) (*DMG, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read disk info: %s", err)
 	}
-	q.Q(diskInfo)
 	d.ImageInfo = diskInfo
 	return d, nil
 }
@@ -139,7 +137,8 @@ func (d *DMG) GetInstallables() {
 }
 
 // HasSLA returns true if the DMG has an SLA
-func (d *DMG) HasSLA() {
+func (d *DMG) HasSLA() bool {
+	return d.ImageInfo.Properties.SoftwareLicenseAgreement
 }
 
 // MountPoint returns the filepath where the dmg is mounted
