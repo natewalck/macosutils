@@ -3,6 +3,8 @@
 package macosutils
 
 import (
+	"bytes"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -11,15 +13,37 @@ import (
 	"strings"
 
 	"github.com/groob/plist"
+	"github.com/y0ssar1an/q"
 )
 
 // DMG reprents a macOS DMG image
 type DMG struct {
 	dmgpath    string
 	MountPoint string
+	ImageInfo  BackingStoreInfo
 	Pkgs       []string
 	Apps       []string
 	logger     *log.Logger
+}
+
+// BackingStoreInfo Stores all info about the disk image
+type BackingStoreInfo struct {
+	ChecksumType      string              `plist:"Checksum Type"`
+	ChecksumValue     string              `plist:"Checksum Value"`
+	ClassName         string              `plist:"Checksum Name"`
+	Format            string              `plist:"Format"`
+	FormatDescription string              `plist:"Format Description"`
+	Properties        DiskImageProperties `plist:"Properties"`
+}
+
+// DiskImageProperties represents the properties of a disk image
+type DiskImageProperties struct {
+	Checksummed              bool `plist:"Checksummed"`
+	Compressed               bool `plist:"Compressed"`
+	Encrypted                bool `plist:"Encrypted"`
+	KernelCompatible         bool `plist:"Kernel Compatible"`
+	Partitioned              bool `plist:"Partitioned"`
+	SoftwareLicenseAgreement bool `plist:"Software License Agreement"`
 }
 
 // SystemEntities contains an array of volumes
@@ -43,7 +67,7 @@ func WithLogger(logger *log.Logger) DMGOption {
 }
 
 // NewDMG will create a new DMG object, with various utility functions
-func NewDMG(path string, opts ...DMGOption) *DMG {
+func NewDMG(path string, opts ...DMGOption) (*DMG, error) {
 	d := &DMG{
 		dmgpath: path,
 		logger:  log.New(os.Stderr, "test", 1),
@@ -51,7 +75,21 @@ func NewDMG(path string, opts ...DMGOption) *DMG {
 	for _, opt := range opts {
 		opt(d)
 	}
-	return d
+
+	args := []string{"imageinfo", d.dmgpath, "-plist"}
+	out, err := exec.Command("/usr/bin/hdiutil", args...).Output()
+	data := bytes.Replace(out, []byte(`<integer>-1</integer>`), []byte(`<string>-1</string>`), -1)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to get the info from dmg : %s", err)
+	}
+	var diskInfo BackingStoreInfo
+	err = plist.Unmarshal(data, &diskInfo)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read disk info: %s", err)
+	}
+	q.Q(diskInfo)
+	d.ImageInfo = diskInfo
+	return d, nil
 }
 
 // Mount the DMG
@@ -98,6 +136,10 @@ func (d *DMG) GetInstallables() {
 			d.Pkgs = append(d.Pkgs, f.Name())
 		}
 	}
+}
+
+// HasSLA returns true if the DMG has an SLA
+func (d *DMG) HasSLA() {
 }
 
 // MountPoint returns the filepath where the dmg is mounted
