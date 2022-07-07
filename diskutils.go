@@ -92,7 +92,6 @@ func NewDMG(path string, opts ...DMGOption) (*DMG, error) {
 
 // Mount the DMG
 func (d *DMG) Mount() error {
-	log.Printf("Mounting dmg located at %v\n", d.dmgpath)
 	args := []string{"attach", d.dmgpath, "-mountRandom", "/tmp", "-nobrowse", "-plist"}
 	out, err := exec.Command("/usr/bin/hdiutil", args...).Output()
 	if err != nil {
